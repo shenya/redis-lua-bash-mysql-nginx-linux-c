@@ -38,6 +38,7 @@ ngx.say("failed to connect: ", err)
 return
 end
 
+local redis_timeout=20
 
 ngx.say("uri: ", ngx.var.request_uri, "  name: ", ngx.var.arg_name)
 
@@ -49,22 +50,20 @@ if ngx.var.arg_name ~= nil then
 
     ngx.say("user: [", ngx.var.arg_name, "] not exist in redis, check it from db", "<br/>");
     sql="select id,name,query_times,create_timestamp,last_access_timestamp from student where name='"..ngx.var.arg_name.."'"
-    ngx.say("sql", sql)
+    --ngx.say("sql", sql)
     res,err,errno,sqlstate = db:query(sql)
     if not res then
     ngx.say("bad result: ", err, ": ", errno, ": ", sqlstate, ".")
     return
     end
 
-   ngx.say("hello", type(res))
-    ngx.say("name:", type(res),res[1].id);
         ngx.say("get result from db: ", cjson.encode(res))
 
         ngx.say("add user: [", ngx.var.arg_name, "] it into redis");
        red:hmset(ngx.var.arg_name, "id", res[1].id, "query_times", res[1].query_times, "create_timestamp", res[1].create_timestamp, "last_access_timestamp", res[1].last_access_timestamp)
-
+       red:expire(ngx.var.arg_name, redis_timeout);
         sql="update student set query_times=query_times+1 where id="..res[1].id
-        ngx.say(sql);
+        --ngx.say(sql);
 	res,err,errno,sqlstate = db:query(sql)
 	if not res then
 	ngx.say("update db result: ", err, ": ", errno, ": ", sqlstate, ".")
@@ -72,19 +71,19 @@ if ngx.var.arg_name ~= nil then
         end
     else
         local count = 0;
-        ngx.say(result[4])
         if result[4] ~= nil then
             count=result[4]
         end
 
         count = count + 1;
 
-        red:hmset(ngx.var.arg_name, "last_access_timestamp", os.time(), "query_times", count)
+        red:hmset(ngx.var.arg_name, "last_access_timestamp", os.time(), "query_times", count);
+        red:expire(ngx.var.arg_name, redis_timeout);
         local result = red:hgetall(ngx.var.arg_name)
 
         ngx.say("get result from redis: ", cjson.encode(result))
         sql="update student set query_times=query_times+1 where id="..result[2]
-        ngx.say(sql)
+        --ngx.say(sql)
 	res,err,errno,sqlstate = db:query(sql)
 	if not res then
 	ngx.say("update db result: ", err, ": ", errno, ": ", sqlstate, ".")
