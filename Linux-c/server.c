@@ -110,10 +110,12 @@ int main(int argc, char *argv[])
                         memset(read_buf, 0, sizeof(read_buf));
                         ret = read(recv_ep_event[i].data.fd,
                                 read_buf, READ_BUF_MAX);
+                        printf("read something from fd[%d], ret[%d]\n",
+                                recv_ep_event[i].data.fd, ret);
                         if (ret > 0)
                         {
-                            printf("read something form fd[%d]\n",
-                                    recv_ep_event[i].data.fd);
+                            printf("read buf[%s]\n", read_buf);
+                            write(recv_ep_event[i].data.fd, read_buf, ret);
                         }
                         else
                         {
