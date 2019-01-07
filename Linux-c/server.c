@@ -30,6 +30,7 @@ int main(int argc, char *argv[])
     int i = 0;
     struct sockaddr_in client_addr;
     char read_buf[READ_BUF_MAX] = {0};
+    int reuse = 1;
 
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd < 0)
@@ -44,10 +45,21 @@ int main(int argc, char *argv[])
     server_addr.sin_addr.s_addr = inet_addr(SERVER_IP);
 
     addr_len = sizeof(server_addr);
+
+    ret = setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR,(const void *)&reuse,
+            sizeof(int));
+    if (0 != ret)
+    {
+        printf("failed to set reuse: %s\n", strerror(errno));
+        close(listen_fd);
+        exit(1);
+    }
+
     ret = bind(listen_fd, (struct sockaddr *)&server_addr,addr_len);
     if (0 != ret)
     {
         printf("failed to bind: %s\n", strerror(errno));
+        close(listen_fd);
         exit(1);
     }
 
@@ -55,6 +67,7 @@ int main(int argc, char *argv[])
     if (0 != ret)
     {
         printf("failed to listen\n");
+        close(listen_fd);
         exit(1);
     }
 
@@ -62,6 +75,7 @@ int main(int argc, char *argv[])
     if (epoll_fd < 0)
     {
         printf("failed to epoll create\n");
+        close(listen_fd);
         exit(1);
     }
 
