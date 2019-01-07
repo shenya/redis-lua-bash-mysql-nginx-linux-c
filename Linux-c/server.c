@@ -6,7 +6,7 @@
 #include <netinet/in.h>
 #include <sys/epoll.h>
 #include <string.h>
-
+#include <errno.h>
 
 #define SERVER_PORT 6000
 #define SERVER_IP "127.0.0.1"
@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     ret = bind(listen_fd, (struct sockaddr *)&server_addr,addr_len);
     if (0 != ret)
     {
-        printf("failed to bind\n");
+        printf("failed to bind: %s\n", strerror(errno));
         exit(1);
     }
 
