@@ -71,7 +71,7 @@ int main(int argc, char *argv[])
         //exit(1);
     }
 
-#if 0
+#if 1
     i=3;
     while (i)
     {
@@ -97,58 +97,75 @@ int main(int argc, char *argv[])
                 printf("error\n");
                 break;
             default:
-                for (i = 0; i < event_num; i++)
-                {
-                    if (STDIN_FILENO == recv_ep_event[i].data.fd)
-                    {
-                        if (recv_ep_event[i].events & EPOLLIN)
-                        {
-                            read_num = read(recv_ep_event[i].data.fd,
-                                    read_buf, READ_BUF_MAX);                            
-                            printf("read from stdin, ret[%d]\n", read_num);
-                            if (read_num > 0)
-                            {
-                                read_buf[read_num - 1] = '\0';
-                                write(socket_fd, read_buf, read_num);
-                                socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_ADD, socket_fd, EPOLLIN);
-                            }
-                            else
-                            {
-                                socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, STDIN_FILENO, EPOLLIN);
-                            }
-                        }
-
-                    }
-                    else 
-                    {
-                        if (recv_ep_event[i].events & EPOLLOUT)
-                        {
-                            printf("connect success\n");
-                            socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, recv_ep_event[i].data.fd, EPOLLIN);
-                        }
-                        else if (recv_ep_event[i].events & EPOLLIN)
-                        {
-                            read_num = read(recv_ep_event[i].data.fd,
-                                    read_buf, READ_BUF_MAX);
-                            printf("read from server, ret[%d]\n", read_num);
-                            if (read_num > 0)
-                            {
-                                read_buf[read_num] = '\0';
-                                printf("buf[%s]\n", read_buf);
-                                close(socket_fd);
-                                break;
-                            }
-                            else
-                            {
-                                socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, socket_fd, EPOLLIN);
-                            }
-                        }
-                    }
-                }
+                 client_active_fd_process(epoll_fd, recv_ep_event,
+                        event_num, socket_fd);
                 break;
         }
     }
 
-    printf("server hello\n");
+    printf("client hello\n");
     return 0;
 }
+
+int client_active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
+        int event_count, int socket_fd)
+{
+    int i = 0;    
+    struct sockaddr_in client_addr;
+    int addr_len = 0;
+    int accept_fd = 0;
+    char read_buf[READ_BUF_MAX] = {0};
+    int ret = 0;
+    int read_num = 0;
+
+    for (i = 0; i < event_count; i++)
+    {
+        if (STDIN_FILENO == recv_ep_event[i].data.fd)
+        {
+            if (recv_ep_event[i].events & EPOLLIN)
+            {
+                read_num = read(recv_ep_event[i].data.fd,
+                        read_buf, READ_BUF_MAX);                            
+                printf("read from stdin, ret[%d]\n", read_num);
+                if (read_num > 0)
+                {
+                    read_buf[read_num - 1] = '\0';
+                    write(socket_fd, read_buf, read_num);
+                    socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_ADD, socket_fd, EPOLLIN);
+                }
+                else
+                {
+                    socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, STDIN_FILENO, EPOLLIN);
+                }
+            }
+    
+        }
+        else 
+        {
+            if (recv_ep_event[i].events & EPOLLOUT)
+            {
+                printf("connect success\n");
+                socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, recv_ep_event[i].data.fd, EPOLLIN);
+            }
+            else if (recv_ep_event[i].events & EPOLLIN)
+            {
+                read_num = read(recv_ep_event[i].data.fd,
+                        read_buf, READ_BUF_MAX);
+                printf("read from server, ret[%d]\n", read_num);
+                if (read_num > 0)
+                {
+                    read_buf[read_num] = '\0';
+                    printf("buf[%s]\n", read_buf);
+                }
+                else
+                {
+                    socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL,
+                            recv_ep_event[i].data.fd, EPOLLIN);
+                }
+            }
+        }
+    }
+
+    return 0;
+}
+
