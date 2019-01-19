@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/epoll.h>
 
 int socket_util_set_reuse(int socket_fd)
 {
@@ -35,4 +36,17 @@ int socket_util_set_nonblock(int socket_fd)
     }
 
     return ret;
+}
+
+int socket_util_epoll_event_op(int epoll_fd, int operation, int fd, int event)
+{
+    struct epoll_event ep_event;
+
+    memset(&ep_event, 0, sizeof(ep_event));
+    ep_event.events = event;
+    ep_event.data.fd = fd;
+
+    epoll_ctl(epoll_fd, operation, fd, &ep_event);
+
+    return 0;
 }

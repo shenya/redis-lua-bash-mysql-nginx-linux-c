@@ -5,4 +5,6 @@ int socket_util_set_reuse(int socket_fd);
 
 int socket_util_set_nonblock(int socket_fd);
 
+int socket_util_epoll_event_op(int epoll_fd, int operation, int fd, int event);
+
 #endif

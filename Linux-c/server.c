@@ -46,8 +46,7 @@ int main(int argc, char *argv[])
 
     addr_len = sizeof(server_addr);
 
-    ret = setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR,(const void *)&reuse,
-            sizeof(int));
+    ret = socket_util_set_reuse(listen_fd);
     if (0 != ret)
     {
         printf("failed to set reuse: %s\n", strerror(errno));
@@ -79,11 +78,7 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    memset(&ep_event, 0, sizeof(ep_event));
-    ep_event.events = EPOLLIN;
-    ep_event.data.fd = listen_fd;
-
-    epoll_ctl(epoll_fd, EPOLL_CTL_ADD, listen_fd, &ep_event);
+    socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_ADD, listen_fd, EPOLLIN);
 
     while (1)
     {
@@ -92,7 +87,7 @@ int main(int argc, char *argv[])
         switch (event_num)
         {
             case 0:
-                printf("timeout\n");
+                //printf("timeout\n");
                 break;
             case -1:
                 printf("error\n");
@@ -114,10 +109,7 @@ int main(int argc, char *argv[])
                         }
 
                         printf("accept fd[%d] from client\n", accept_fd);
-                        memset(&ep_event, 0, sizeof(ep_event));
-                        ep_event.events = EPOLLIN;
-                        ep_event.data.fd = accept_fd;
-                        epoll_ctl(epoll_fd, EPOLL_CTL_ADD, accept_fd, &ep_event);
+                        socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_ADD, accept_fd, EPOLLIN);
                     }
                     else if (recv_ep_event[i].events & EPOLLIN)
                     {
@@ -133,13 +125,15 @@ int main(int argc, char *argv[])
                         }
                         else
                         {
-                            printf("client error fd[%d]\n",
-                                    recv_ep_event[i].data.fd);
-                            memset(&ep_event, 0, sizeof(ep_event));
-                            ep_event.events = EPOLLIN;
-                            ep_event.data.fd = recv_ep_event[i].data.fd;
-                            epoll_ctl(epoll_fd, EPOLL_CTL_DEL,
-                                    recv_ep_event[i].data.fd, &ep_event);
+                            printf("client error fd[%d], ret:%d\n",
+                                    recv_ep_event[i].data.fd, ret);
+                            ret = write(recv_ep_event[i].data.fd, "hello", 5);
+                            if (ret < 0)
+                            {
+                                printf("ret:%d, errno:%d, %s", ret, errno, strerror(errno));
+                            }
+
+                            socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, recv_ep_event[i].data.fd, EPOLLIN);
                             close(recv_ep_event[i].data.fd);
                         }
                     }
