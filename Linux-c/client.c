@@ -67,11 +67,18 @@ int main(int argc, char *argv[])
     ret = connect(socket_fd, (struct sockaddr *)&server_addr, addr_len);
     if (ret < 0)
     {
-        printf("failed to connect: %s\n", strerror(errno));
-        //exit(1);
+        if (EINPROGRESS == errno)
+        {
+            printf("failed to connect: errno:%d, %s\n", errno, strerror(errno));
+        }
+        else
+        {
+            printf("failed to connect: errno:%d, %s\n", errno, strerror(errno));
+            exit(1);
+        }
     }
 
-#if 1
+#if 0
     i=3;
     while (i)
     {
@@ -157,10 +164,19 @@ int client_active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
                     read_buf[read_num] = '\0';
                     printf("buf[%s]\n", read_buf);
                 }
+                else if (0 == read_num)
+                {
+                    printf("server closed: errno:%d, %s\n", errno, strerror(errno));
+                    socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL,
+                        recv_ep_event[i].data.fd, EPOLLIN);
+                    close(recv_ep_event[i].data.fd);
+                }
                 else
                 {
+                    printf("server error: errno:%d, %s\n", errno, strerror(errno));
                     socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL,
                             recv_ep_event[i].data.fd, EPOLLIN);
+                    close(recv_ep_event[i].data.fd);
                 }
             }
         }
