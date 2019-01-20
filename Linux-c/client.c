@@ -24,6 +24,10 @@ int socket_read_callback(socket_event_t *user_event);
 
 int socket_write_callback(socket_event_t *user_event);
 
+int socket_connect_callback(socket_event_t *user_event);
+
+int g_socket_fd;
+
 int main(int argc, char *argv[])
 {
     int socket_fd = -1;
@@ -46,6 +50,8 @@ int main(int argc, char *argv[])
         printf("fail to socket\n");
         exit(1);
     }
+
+    g_socket_fd = socket_fd;
 
     ret = socket_util_set_nonblock(socket_fd);
     if (0 != ret)
@@ -71,12 +77,11 @@ int main(int argc, char *argv[])
     user_event = (socket_event_t *)malloc(sizeof(socket_event_t));
     user_event->epoll_fd = epoll_fd;
     user_event->fd = socket_fd;
-    user_event->events = EPOLLIN;
+    user_event->events = EPOLLIN | EPOLLOUT;
     user_event->cb.read_callback = socket_read_callback;
-    user_event->cb.write_callback = socket_write_callback;
-    socket_event_op(user_event, EPOLL_CTL_ADD, EPOLLOUT);
+    user_event->cb.write_callback = socket_connect_callback;
+    socket_event_op(user_event, EPOLL_CTL_ADD, EPOLLOUT | EPOLLIN);
 
-    //memset(user_event, 0, sizeof(socket_event_t));
     user_event = (socket_event_t *)malloc(sizeof(socket_event_t));
     user_event->epoll_fd = epoll_fd;
     user_event->fd = STDIN_FILENO;
@@ -166,15 +171,19 @@ int stdin_read_callback(socket_event_t *user_event)
     char read_buf[READ_BUF_MAX] = {0};
 
     ret = read(user_event->fd,
-            read_buf, READ_BUF_MAX);                            
+            read_buf, READ_BUF_MAX);
     printf("read from stdin, ret[%d]\n", ret);
     if (ret > 0)
     {
         read_buf[ret - 1] = '\0';
         printf("read buf[%s]\n", read_buf);
+
+        ret = write(g_socket_fd, read_buf, ret - 1);
     }
     else
     {
+        socket_event_op(user_event, EPOLL_CTL_DEL, user_event->events);
+        close(user_event->fd);
     }
 
     return 0;
@@ -191,10 +200,25 @@ int socket_read_callback(socket_event_t *user_event)
     if (ret > 0)
     {
         read_buf[ret - 1] = '\0';
+        printf("read buf[%s]\n", read_buf);
     }
     else
     {
+        
     }
+
+    return 0;
+}
+
+int socket_connect_callback(socket_event_t *user_event)
+{
+    int ret = 0;
+    char read_buf[READ_BUF_MAX] = {0};
+                     
+    printf("connect success\n");
+    user_event->cb.write_callback = socket_write_callback;
+
+    socket_event_op(user_event, EPOLL_CTL_DEL, EPOLLOUT);
 
     return 0;
 }
@@ -204,7 +228,7 @@ int socket_write_callback(socket_event_t *user_event)
     int ret = 0;
     char read_buf[READ_BUF_MAX] = {0};
                      
-    printf("connect success\n");
+    printf("%s\n", __FUNCTION__);
 
     socket_event_op(user_event, EPOLL_CTL_DEL, EPOLLOUT);
 
