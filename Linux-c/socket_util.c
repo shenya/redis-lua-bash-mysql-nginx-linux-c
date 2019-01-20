@@ -50,3 +50,17 @@ int socket_util_epoll_event_op(int epoll_fd, int operation, int fd, int event)
 
     return 0;
 }
+
+int socket_util_epoll_event_op_user(int epoll_fd, int operation, int fd,
+        int event, void *user_data_ptr)
+{
+    struct epoll_event ep_event;
+
+    memset(&ep_event, 0, sizeof(ep_event));
+    ep_event.events |= event;
+    ep_event.data.ptr = user_data_ptr;
+
+    epoll_ctl(epoll_fd, operation, fd, &ep_event);
+
+    return 0;
+}
