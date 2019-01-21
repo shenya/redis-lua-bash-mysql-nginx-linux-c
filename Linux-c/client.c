@@ -199,7 +199,7 @@ int socket_read_callback(socket_event_t *user_event)
     printf("read from socket, ret[%d]\n", ret);
     if (ret > 0)
     {
-        read_buf[ret - 1] = '\0';
+        read_buf[ret] = '\0';
         printf("read buf[%s]\n", read_buf);
     }
     else
@@ -218,7 +218,7 @@ int socket_connect_callback(socket_event_t *user_event)
     printf("connect success\n");
     user_event->cb.write_callback = socket_write_callback;
 
-    socket_event_op(user_event, EPOLL_CTL_DEL, EPOLLOUT);
+    socket_event_op(user_event, EPOLL_CTL_MOD, EPOLLOUT);
 
     return 0;
 }
@@ -230,7 +230,8 @@ int socket_write_callback(socket_event_t *user_event)
                      
     printf("%s\n", __FUNCTION__);
 
-    socket_event_op(user_event, EPOLL_CTL_DEL, EPOLLOUT);
+    user_event->events &= ~EPOLLOUT;
+    socket_event_op(user_event, EPOLL_CTL_MOD, EPOLLOUT);
 
     return 0;
 }

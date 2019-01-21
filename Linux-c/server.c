@@ -141,7 +141,8 @@ int active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
             if (ret > 0)
             {
                 printf("read buf[%s]\n", read_buf);
-                write(recv_ep_event[i].data.fd, read_buf, ret);
+                ret = write(recv_ep_event[i].data.fd, read_buf, ret);
+                printf("write ret: %d\n", ret);
             }
             else if (0 == ret)
             {
