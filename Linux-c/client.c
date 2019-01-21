@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     user_event->events = EPOLLIN | EPOLLOUT;
     user_event->cb.read_callback = socket_read_callback;
     user_event->cb.write_callback = socket_connect_callback;
-    socket_event_op(user_event, EPOLL_CTL_ADD, EPOLLOUT | EPOLLIN);
+    socket_event_op(user_event, EPOLL_CTL_ADD);
 
     user_event = (socket_event_t *)malloc(sizeof(socket_event_t));
     user_event->epoll_fd = epoll_fd;
@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     user_event->cb.read_callback = stdin_read_callback;
     user_event->cb.write_callback = NULL;
 
-    socket_event_op(user_event, EPOLL_CTL_ADD, EPOLLIN);
+    socket_event_op(user_event, EPOLL_CTL_ADD);
 
     ret = connect(socket_fd, (struct sockaddr *)&server_addr, addr_len);
     if (ret < 0)
@@ -182,7 +182,7 @@ int stdin_read_callback(socket_event_t *user_event)
     }
     else
     {
-        socket_event_op(user_event, EPOLL_CTL_DEL, user_event->events);
+        socket_event_op(user_event, EPOLL_CTL_DEL);
         close(user_event->fd);
     }
 
@@ -202,9 +202,17 @@ int socket_read_callback(socket_event_t *user_event)
         read_buf[ret] = '\0';
         printf("read buf[%s]\n", read_buf);
     }
+    else if (0 == ret)
+    {
+        printf("server closed\n");
+        socket_event_op(user_event, EPOLL_CTL_DEL);
+        close(user_event->fd);
+    }
     else
     {
-        
+        printf("server error\n");
+        socket_event_op(user_event, EPOLL_CTL_DEL);
+        close(user_event->fd);
     }
 
     return 0;
@@ -218,7 +226,7 @@ int socket_connect_callback(socket_event_t *user_event)
     printf("connect success\n");
     user_event->cb.write_callback = socket_write_callback;
 
-    socket_event_op(user_event, EPOLL_CTL_MOD, EPOLLOUT);
+    socket_event_op(user_event, EPOLL_CTL_MOD);
 
     return 0;
 }
@@ -231,7 +239,7 @@ int socket_write_callback(socket_event_t *user_event)
     printf("%s\n", __FUNCTION__);
 
     user_event->events &= ~EPOLLOUT;
-    socket_event_op(user_event, EPOLL_CTL_MOD, EPOLLOUT);
+    socket_event_op(user_event, EPOLL_CTL_MOD);
 
     return 0;
 }

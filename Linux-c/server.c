@@ -8,12 +8,18 @@
 #include <string.h>
 #include <errno.h>
 
+#include "socket_handler.h"
+
 #define SERVER_PORT 6000
 #define SERVER_IP "127.0.0.1"
 #define SERVER_BACK_LOG 10
 #define EPOLL_FD_COUNT 256
 #define RECV_EP_EVENT_MAX 64
 #define READ_BUF_MAX 1024
+
+int socket_accept_callback(socket_event_t *user_event);
+
+int client_read_callback(socket_event_t *user_event);
 
 int main(int argc, char *argv[])
 {
@@ -31,6 +37,7 @@ int main(int argc, char *argv[])
     struct sockaddr_in client_addr;
     char read_buf[READ_BUF_MAX] = {0};
     int reuse = 1;
+    socket_event_t *user_event = NULL;
 
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
     if (listen_fd < 0)
@@ -78,7 +85,13 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
-    socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_ADD, listen_fd, EPOLLIN);
+    user_event = (socket_event_t *)malloc(sizeof(socket_event_t));
+    memset(user_event, 0, sizeof(socket_event_t));
+    user_event->epoll_fd = epoll_fd;
+    user_event->fd = listen_fd;
+    user_event->events = EPOLLIN;
+    user_event->cb.read_callback = socket_accept_callback;
+    socket_event_op(user_event, EPOLL_CTL_ADD);
 
     while (1)
     {
@@ -108,69 +121,87 @@ int active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
         int event_count, int listen_fd)
 {
     int i = 0;    
-    struct sockaddr_in client_addr;
-    int addr_len = 0;
-    int accept_fd = 0;
-    char read_buf[READ_BUF_MAX] = {0};
-    int ret = 0;
+    socket_event_t *user_event = NULL;
 
     for (i = 0; i < event_count; i++)
     {
-        if (recv_ep_event[i].data.fd == listen_fd)
+        user_event = (socket_event_t *)recv_ep_event[i].data.ptr;
+
+        if (recv_ep_event[i].events & EPOLLIN)
         {
-            memset(&client_addr, 0, sizeof(client_addr));
-            addr_len = sizeof(client_addr);
-            accept_fd = accept(recv_ep_event[i].data.fd,
-                    (struct sockaddr *)&client_addr, &addr_len);
-            if (accept_fd < 0)
-            {
-                printf("failed to accept\n");
-                continue;
-            }
-
-            printf("accept fd[%d] from client\n", accept_fd);
-            socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_ADD, accept_fd, EPOLLIN);
+            user_event->cb.read_callback(user_event);
         }
-        else if (recv_ep_event[i].events & EPOLLIN)
+        else if(recv_ep_event[i].events & EPOLLOUT)
         {
-            memset(read_buf, 0, sizeof(read_buf));
-            ret = read(recv_ep_event[i].data.fd,
-                    read_buf, READ_BUF_MAX);
-            printf("read something from fd[%d], ret[%d]\n",
-                    recv_ep_event[i].data.fd, ret);
-            if (ret > 0)
-            {
-                printf("read buf[%s]\n", read_buf);
-                ret = write(recv_ep_event[i].data.fd, read_buf, ret);
-                printf("write ret: %d\n", ret);
-            }
-            else if (0 == ret)
-            {
-                printf("client closed fd[%d], ret:%d\n",
-                        recv_ep_event[i].data.fd, ret);
-                ret = write(recv_ep_event[i].data.fd, "hello", 5);
-                if (ret < 0)
-                {
-                    printf("ret:%d, errno:%d, %s", ret, errno, strerror(errno));
-                }
-
-                socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, recv_ep_event[i].data.fd, EPOLLIN);
-                close(recv_ep_event[i].data.fd);
-            }
-            else
-            {
-                printf("client error fd[%d], ret:%d\n",
-                        recv_ep_event[i].data.fd, ret);
-                ret = write(recv_ep_event[i].data.fd, "hello", 5);
-                if (ret < 0)
-                {
-                    printf("ret:%d, errno:%d, %s", ret, errno, strerror(errno));
-                }
-
-                socket_util_epoll_event_op(epoll_fd, EPOLL_CTL_DEL, recv_ep_event[i].data.fd, EPOLLIN);
-                close(recv_ep_event[i].data.fd);
-            }
+            user_event->cb.write_callback(user_event);
         }
+    }
+
+    return 0;
+}
+
+int socket_accept_callback(socket_event_t *user_event)
+{
+    int ret = 0;
+    char read_buf[READ_BUF_MAX] = {0};
+    struct sockaddr_in client_addr;
+    int addr_len = 0;
+    int accept_fd = 0;
+    socket_event_t *client_event = NULL;;
+
+    memset(&client_addr, 0, sizeof(client_addr));
+    addr_len = sizeof(client_addr);
+    accept_fd = accept(user_event->fd,
+            (struct sockaddr *)&client_addr, &addr_len);
+    if (accept_fd < 0)
+    {
+        printf("failed to accept\n");
+        return -1;
+    }
+
+    printf("accept fd[%d] from client\n", accept_fd);
+
+    client_event = (socket_event_t *)malloc(sizeof(socket_event_t));
+    memset(client_event, 0, sizeof(socket_event_t));
+    client_event->epoll_fd = user_event->epoll_fd;
+    client_event->fd = accept_fd;
+    client_event->events = EPOLLIN;
+    client_event->cb.read_callback = client_read_callback;
+    socket_event_op(client_event, EPOLL_CTL_ADD);
+
+    return 0;
+}
+
+int client_read_callback(socket_event_t *user_event)
+{
+    int ret = 0;
+    char read_buf[READ_BUF_MAX] = {0};
+
+    memset(read_buf, 0, sizeof(read_buf));
+    ret = read(user_event->fd, read_buf, READ_BUF_MAX);
+    printf("read something from fd[%d], ret[%d]\n",
+            user_event->fd, ret);
+    if (ret > 0)
+    {
+        printf("read buf[%s]\n", read_buf);
+        ret = write(user_event->fd, read_buf, ret);
+        printf("write ret: %d\n", ret);
+    }
+    else if (0 == ret)
+    {
+        printf("client closed fd[%d], ret:%d\n",
+                user_event->fd, ret);
+
+        socket_event_op(user_event, EPOLL_CTL_DEL);
+        close(user_event->fd);
+    }
+    else
+    {
+        printf("client error fd[%d], ret:%d\n",
+                user_event->fd, ret);
+
+        socket_event_op(user_event, EPOLL_CTL_DEL);
+        close(user_event->fd);
     }
 
     return 0;

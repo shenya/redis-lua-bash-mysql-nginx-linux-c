@@ -22,6 +22,6 @@ struct socket_event
     long last_active_timestamp;
 };
 
-int socket_event_op(socket_event_t *user_event, int operation, int events);
+int socket_event_op(socket_event_t *user_event, int operation);
 
 #endif
