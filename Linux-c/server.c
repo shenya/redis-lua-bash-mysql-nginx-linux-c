@@ -7,8 +7,10 @@
 #include <sys/epoll.h>
 #include <string.h>
 #include <errno.h>
+#include <arpa/inet.h>
 
 #include "socket_handler.h"
+#include "socket_util.h"
 
 #define SERVER_PORT 6000
 #define SERVER_IP "127.0.0.1"
@@ -21,6 +23,9 @@ int socket_accept_callback(socket_event_t *user_event);
 
 int client_read_callback(socket_event_t *user_event);
 
+int active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
+        int event_count, int listen_fd);
+
 int main(int argc, char *argv[])
 {
     int listen_fd = -1;
@@ -28,15 +33,10 @@ int main(int argc, char *argv[])
     int addr_len = 0;
     int ret = -1;
     int epoll_fd = 0;
-    struct epoll_event ep_event;
+    //struct epoll_event ep_event;
     struct epoll_event recv_ep_event[RECV_EP_EVENT_MAX];
     int timeout = 5 * 1000;
     int event_num = 0;
-    int accept_fd = -1;
-    int i = 0;
-    struct sockaddr_in client_addr;
-    char read_buf[READ_BUF_MAX] = {0};
-    int reuse = 1;
     socket_event_t *user_event = NULL;
 
     listen_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -142,10 +142,8 @@ int active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
 
 int socket_accept_callback(socket_event_t *user_event)
 {
-    int ret = 0;
-    char read_buf[READ_BUF_MAX] = {0};
     struct sockaddr_in client_addr;
-    int addr_len = 0;
+    socklen_t addr_len = 0;
     int accept_fd = 0;
     socket_event_t *client_event = NULL;;
 

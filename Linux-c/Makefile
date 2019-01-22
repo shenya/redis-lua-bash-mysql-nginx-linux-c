@@ -1,7 +1,7 @@
 SERVER_BIN=server
 CLIENT_BIN=client
 
-CFLAGS=-g -O3
+CFLAGS=-g -O3 -Wall
 
 
 all:

@@ -8,8 +8,10 @@
 #include <string.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <arpa/inet.h>
 
 #include "socket_handler.h"
+#include "socket_util.h"
 
 #define SERVER_PORT 6000
 #define SERVER_IP "127.0.0.1"
@@ -26,6 +28,9 @@ int socket_write_callback(socket_event_t *user_event);
 
 int socket_connect_callback(socket_event_t *user_event);
 
+int client_active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
+        int event_count, int socket_fd);
+
 int g_socket_fd;
 
 int main(int argc, char *argv[])
@@ -35,13 +40,9 @@ int main(int argc, char *argv[])
     int addr_len = 0;
     int ret = -1;
     int epoll_fd = 0;
-    struct epoll_event ep_event;
     struct epoll_event recv_ep_event[RECV_EP_EVENT_MAX];
     int timeout = 5 * 1000;
     int event_num = 0;
-    int i = 0;
-    char read_buf[READ_BUF_MAX] = {0};
-    int read_num = 0;
     socket_event_t *user_event = NULL;
 
     socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -145,7 +146,6 @@ int client_active_fd_process(int epoll_fd, struct epoll_event *recv_ep_event,
         int event_count, int socket_fd)
 {
     int i = 0;    
-    int ret = 0;
     socket_event_t *user_event = NULL;
 
     for (i = 0; i < event_count; i++)
@@ -220,9 +220,6 @@ int socket_read_callback(socket_event_t *user_event)
 
 int socket_connect_callback(socket_event_t *user_event)
 {
-    int ret = 0;
-    char read_buf[READ_BUF_MAX] = {0};
-                     
     printf("connect success\n");
     user_event->cb.write_callback = socket_write_callback;
 
@@ -233,9 +230,6 @@ int socket_connect_callback(socket_event_t *user_event)
 
 int socket_write_callback(socket_event_t *user_event)
 {
-    int ret = 0;
-    char read_buf[READ_BUF_MAX] = {0};
-                     
     printf("%s\n", __FUNCTION__);
 
     user_event->events &= ~EPOLLOUT;
