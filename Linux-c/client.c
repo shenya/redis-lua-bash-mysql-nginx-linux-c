@@ -61,6 +61,8 @@ int main(int argc, char *argv[])
         exit(1);
     }
 
+    socket_util_set_sendbuf_length(socket_fd, 4096);
+
     memset(&server_addr, 0, sizeof(server_addr));
     server_addr.sin_family = AF_INET;
     server_addr.sin_port = htons(SERVER_PORT);

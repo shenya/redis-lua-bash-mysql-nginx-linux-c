@@ -38,6 +38,72 @@ int socket_util_set_nonblock(int socket_fd)
     return ret;
 }
 
+int socket_util_set_sendbuf_length(int socket_fd, int length)
+{
+    int ret = 0;
+
+    ret = setsockopt(socket_fd, SOL_SOCKET, SO_SNDBUF, &length, sizeof(length));
+    if (0 != ret)
+    {
+        printf("fail to set sendbuf length: %s\n", strerror(errno));
+    }
+
+    return ret;
+}
+
+int socket_util_set_recvbuf_length(int socket_fd, int length)
+{
+    int ret = 0;
+
+    ret = setsockopt(socket_fd, SOL_SOCKET, SO_RCVBUF, &length, sizeof(length));
+    if (0 != ret)
+    {
+        printf("fail to set rcvbuf length: %s\n", strerror(errno));
+    }
+
+    return ret;
+}
+
+int socket_util_get_sendbuf_length(int socket_fd, int *out_length)
+{
+    int ret = 0;
+    int len = 0;
+    int length = 0;
+
+    len = sizeof(length);
+    ret = getsockopt(socket_fd, SOL_SOCKET, SO_SNDBUF, &length, (socklen_t *)&len);
+    if (0 != ret)
+    {
+        printf("fail to get sendbuf length: %s\n", strerror(errno));
+    }
+    else
+    {
+        *out_length = length;
+    }
+
+    return ret;
+}
+
+int socket_util_get_recvbuf_length(int socket_fd, int *out_length)
+{
+    int ret = 0;
+    int len = 0;
+    int length = 0;
+
+    len = sizeof(length);
+    ret = getsockopt(socket_fd, SOL_SOCKET, SO_RCVBUF, &length, (socklen_t *)&len);
+    if (0 != ret)
+    {
+        printf("fail to get recvbuf length: %s\n", strerror(errno));
+    }
+    else
+    {
+        *out_length = length;
+    }
+
+    return ret;
+}
+
 int socket_util_epoll_event_op(int epoll_fd, int operation, int fd, int event)
 {
     struct epoll_event ep_event;
