@@ -17,7 +17,7 @@ import MySQLdb
 #date='20190706'
 
 
-def stock_store_into_db(table, code, name, today_start, today_peak, today_low, yesterday_end, trust_rate, exchange_rate, range_rate, deal_volume, date):
+def stock_store_into_db(table, code, name, close_price, today_change, today_change_rate, today_start, today_peak, today_low, yesterday_end, trust_rate, exchange_rate, range_rate, deal_volume, date):
 
     db = MySQLdb.connect("localhost", "root", "szkbsgy2019", "stock_info", charset='utf8')
 
@@ -28,8 +28,8 @@ def stock_store_into_db(table, code, name, today_start, today_peak, today_low, y
      #   exchange_rate, range_rate, deal_volume,date) values("%s","%s",%f,%f,%f,%f,%f,%f,%f,%f,"%s")"""%(code,name, today_start,today_peak,today_low,\
       #      yesterday_end,trust_rate, exchange_rate, range_rate, deal_volume, date)
 
-    sql="""insert into %s(code, name, today_start,today_peak,today_low, yesterday_end,trust_rate,
-        exchange_rate, range_rate, deal_volume,date) values("%s","%s","%s","%s","%s","%s","%s","%s","%s","%s","%s")"""%(table, code,name, today_start,today_peak,today_low,\
+    sql="""insert into %s(code, name, close_price, today_change, today_change_rate, today_start,today_peak,today_low, yesterday_end,trust_rate,
+        exchange_rate, range_rate, deal_volume,date) values("%s","%s", "%s", "%s", "%s", "%s","%s","%s","%s","%s","%s","%s","%s","%s")"""%(table, code,name, close_price, today_change, today_change_rate, today_start,today_peak,today_low,\
             yesterday_end,trust_rate, exchange_rate, range_rate, deal_volume, date)
     print(sql)
 

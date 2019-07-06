@@ -64,6 +64,20 @@ def getStockInfo_to_db(lst, stockURL, date):
             stockInfo = soup.find('div', attrs={'class': 'stock-bets'})
 
             name = stockInfo.find_all(attrs={'class': 'bets-name'})[0]
+            close_price_id = stockInfo.find_all(attrs={'class': '_close'})[0]
+            close_price = close_price_id.text.split()[0]
+            #print(close_price)
+
+            try:
+                close_variable_id = stockInfo.find_all(attrs={'class': 'price s-down'})[0]
+            except:
+                close_variable_id = stockInfo.find_all(attrs={'class': 'price s-up'})[0]
+            #print(close_variable_id)
+            close_variable_id_array = close_variable_id.find_all('span')
+            today_change = close_variable_id_array[0].text.split()[0]
+            today_change_rate = close_variable_id_array[1].text.split()[0]
+            #print(today_change)
+            #print(today_change_rate)
             #infoDict.update({'name': name.text.split()[0]})
             table="stock_date_"+stock
             code=stock
@@ -79,8 +93,8 @@ def getStockInfo_to_db(lst, stockURL, date):
             range_rate=valueList[16].text
             deal_volume=valueList[1].text
 
-            print(date);
-            stock_store_into_db(table, code, name, today_start, today_peak, today_low, yesterday_end, trust_rate, exchange_rate, range_rate, deal_volume, date)
+            #print(date);
+            stock_store_into_db(table, code, name, close_price, today_change, today_change_rate, today_start, today_peak, today_low, yesterday_end, trust_rate, exchange_rate, range_rate, deal_volume, date)
 #            for i in range(len(keyList)):
 #                key = keyList[i].text
 #                val = valueList[i].text
