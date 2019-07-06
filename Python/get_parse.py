@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import traceback
 import re
 import sys
+import time
 from db_test import stock_store_into_db
 
 
@@ -51,15 +52,54 @@ def getStockInfo(lst, stockURL, fpath):
             traceback.print_exc()
             continue
 
+def getStockInfo_to_db(lst, stockURL, date):
+    for stock in lst:
+        url = stockURL + stock + ".html"
+        html = getHTMLText(url)
+        try:
+            if html == "":
+                continue
+            infoDict = {}
+            soup = BeautifulSoup(html, 'html.parser')
+            stockInfo = soup.find('div', attrs={'class': 'stock-bets'})
 
-def store_into_db():
-    infoDict = {}
+            name = stockInfo.find_all(attrs={'class': 'bets-name'})[0]
+            #infoDict.update({'name': name.text.split()[0]})
+            table="stock_date_"+stock
+            code=stock
+            name=name.text.split()[0];
+            keyList = stockInfo.find_all('dt')
+            valueList = stockInfo.find_all('dd')
+            today_start=valueList[0].text;
+            today_peak=valueList[2].text
+            today_low=valueList[13].text
+            yesterday_end=valueList[11].text
+            trust_rate=valueList[6].text
+            exchange_rate=valueList[12].text
+            range_rate=valueList[16].text
+            deal_volume=valueList[1].text
+
+            print(date);
+            stock_store_into_db(table, code, name, today_start, today_peak, today_low, yesterday_end, trust_rate, exchange_rate, range_rate, deal_volume, date)
+#            for i in range(len(keyList)):
+#                key = keyList[i].text
+#                val = valueList[i].text
+#                print (i, key, val)
+        except:
+            traceback.print_exc()
+            continue
+
 
 
 
 def get_stock_list(slist):
     slist.append('sh600175')
     slist.append('sh601857')
+    slist.append('sh601169')
+    slist.append('sh600266')
+    slist.append('sh600050')
+    slist.append('sh600008')
+    slist.append('sh601992')
 
 code=601857
 name='zgsy'
@@ -73,15 +113,28 @@ range_rate=22.3
 deal_volume=33.3
 date='20190706'
 
+running_log="./stock_running.txt"
+
 def main():
     stock_list_url = 'http://quote.eastmoney.com/stocklist.html'
     stock_info_url = 'http://gupiao.baidu.com/stock/'
     output_file = './StockInfo.txt'
     slist = []
-    #getStockList(slist, stock_list_url)
-    #get_stock_list(slist)
-    #print(slist)
-    #getStockInfo(slist, stock_info_url, output_file)
-    stock_store_into_db(code, name, today_start, today_peak, today_low, yesterday_end, trust_rate, exchange_rate, range_rate, deal_volume, date)
+    running_result=""
+    date=time.strftime("%Y%m%d", time.localtime())
+    print(date)
+    today_workdate=int(time.strftime("%w"))
+    print(today_workdate)
+    if today_workdate == 6 or today_workdate == 0:
+        print ("this is non-work date")
+        running_result="this is non-work date"
+    else:
+        get_stock_list(slist)
+        print(slist)
+        getStockInfo_to_db(slist, stock_info_url, date)
+        running_result="this is work date"
 
+    with open(running_log, 'a', encoding='utf-8') as f:
+        f.write(date + running_result + '\n')
+        f.close()
 main()
