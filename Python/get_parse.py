@@ -2,6 +2,9 @@ import requests
 from bs4 import BeautifulSoup
 import traceback
 import re
+import sys
+from db_test import stock_store_into_db
+
 
 def getHTMLText(url):
     try:
@@ -48,16 +51,37 @@ def getStockInfo(lst, stockURL, fpath):
             traceback.print_exc()
             continue
 
+
+def store_into_db():
+    infoDict = {}
+
+
+
+def get_stock_list(slist):
+    slist.append('sh600175')
+    slist.append('sh601857')
+
+code=601857
+name='zgsy'
+today_start=6.87
+today_peak=6.7
+today_low=7.7
+yesterday_end=8.7
+trust_rate=9.7
+exchange_rate=10.1
+range_rate=22.3
+deal_volume=33.3
+date='20190706'
+
 def main():
     stock_list_url = 'http://quote.eastmoney.com/stocklist.html'
     stock_info_url = 'http://gupiao.baidu.com/stock/'
-    output_file = './BaiduStockInfo.txt'
+    output_file = './StockInfo.txt'
     slist = []
-    getStockList(slist, stock_list_url)
-    slist.append('sh600175')
-    #slist.append('sz601857')
-    print(slist)
-    getStockInfo(slist, stock_info_url, output_file)
-
+    #getStockList(slist, stock_list_url)
+    #get_stock_list(slist)
+    #print(slist)
+    #getStockInfo(slist, stock_info_url, output_file)
+    stock_store_into_db(code, name, today_start, today_peak, today_low, yesterday_end, trust_rate, exchange_rate, range_rate, deal_volume, date)
 
 main()
