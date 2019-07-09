@@ -5,7 +5,14 @@ import re
 import sys
 import time
 from db_test import stock_store_into_db
+import random
 
+def get_rand_number(a, b):
+
+    c = random.randint(a,b) + random.randint(a,b) + 3;
+    print ("random() : ", c)
+
+    return c
 
 def getHTMLText(url):
     try:
@@ -54,6 +61,9 @@ def getStockInfo(lst, stockURL, fpath):
 
 def getStockInfo_to_db(lst, stockURL, date):
     for stock in lst:
+        sleep_time = get_rand_number(1, 10)
+        print(sleep_time)
+        time.sleep(sleep_time)
         url = stockURL + stock + ".html"
         html = getHTMLText(url)
         try:
@@ -114,6 +124,12 @@ def get_stock_list(slist):
     slist.append('sh600050')
     slist.append('sh600008')
     slist.append('sh601992')
+    slist.append('sh600285')
+    slist.append('sh600284')
+    slist.append('sh600999')
+    slist.append('sh600106')
+    slist.append('sz002157')
+    slist.append('sz000725')
 
 code=601857
 name='zgsy'
