@@ -1,5 +1,5 @@
 all: libmy_math.a libmy_math.so
-	gcc -o a.out main.c -L. -lmy_math
+	gcc -o a.out main.c -L. -lmy_math -Wl,-rpath=.
 
 libmy_math.a: my_math.o
 	ar rcs libmy_math.a  my_math.o

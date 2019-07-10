@@ -1,0 +1,6 @@
+/etc/ld.so.conf
+ldconfig
+
+/etc/ld.so.conf
+
+-Wl,-rpath,
