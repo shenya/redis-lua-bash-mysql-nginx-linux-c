@@ -1,5 +1,6 @@
 all: libmy_math.a libmy_math.so
-	gcc -o a.out main.c -L. -lmy_math -Wl,-rpath=.
+	#gcc -o a.out main.c -L. -lmy_math -Wl,-rpath=.
+	gcc -o a.out main.c -L. -Wl,-Bstatic -lmy_math -Wl,-Bdynamic
 
 libmy_math.a: my_math.o
 	ar rcs libmy_math.a  my_math.o
