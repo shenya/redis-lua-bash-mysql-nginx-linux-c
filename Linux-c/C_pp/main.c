@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string.h>
 
 using namespace std;
 
@@ -12,7 +13,9 @@ public:
 	int GetAge();
 	void SetAge(int m);
         void ShowAge();
+        void SetName(const char *in_name);
 
+	friend void ShowName(Student & myStudent);
 };
 
 int Student::GetAge()
@@ -30,13 +33,25 @@ void Student::ShowAge()
     cout<<"age:"<<this->age<<endl;
 }
 
+void Student::SetName(const char *in_name)
+{
+    strcpy(name, in_name);
+}
+
+void ShowName(Student & myStudent)
+{
+    cout<<"name:"<<myStudent.name<<endl;
+}
+
 int main()
 {
 	Student student;
 
 	student.SetAge(15);
+	student.SetName("zhangsan");
         cout<<"hello: age:"<<student.GetAge()<<endl;
 	student.ShowAge();
+	ShowName(student);
 
 	return 0;
 }
