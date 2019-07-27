@@ -7,8 +7,6 @@ using namespace std;
 class Student
 {
 public:
-	char name[32];
-	int age;
 
 	int GetAge();
 	void SetAge(int m);
@@ -16,6 +14,9 @@ public:
         void SetName(const char *in_name);
 
 	friend void ShowName(Student & myStudent);
+private:
+	char name[32];
+	int age;
 };
 
 int Student::GetAge()
