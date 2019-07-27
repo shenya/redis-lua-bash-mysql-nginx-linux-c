@@ -14,10 +14,16 @@ public:
         void SetName(const char *in_name);
 
 	friend void ShowName(Student & myStudent);
+	friend class SuperStudent;
 private:
 	char name[32];
 	int age;
+void ShowInfo()
+{
+    cout<<"name:"<<name<<", age:"<<age<<endl;
+}
 };
+
 
 int Student::GetAge()
 {
@@ -44,6 +50,21 @@ void ShowName(Student & myStudent)
     cout<<"name:"<<myStudent.name<<endl;
 }
 
+class SuperStudent
+{
+private:
+    Student student;
+public:
+    void OutPutInfo();
+};
+
+void SuperStudent::OutPutInfo()
+{
+    student.SetAge(20);
+    student.ShowInfo();
+}
+
+
 int main()
 {
 	Student student;
@@ -53,6 +74,9 @@ int main()
         cout<<"hello: age:"<<student.GetAge()<<endl;
 	student.ShowAge();
 	ShowName(student);
+
+	SuperStudent s_student;
+	s_student.OutPutInfo();
 
 	return 0;
 }
