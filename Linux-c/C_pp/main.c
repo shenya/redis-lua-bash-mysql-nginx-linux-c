@@ -7,7 +7,7 @@ using namespace std;
 class Student
 {
 public:
-
+        Student(int Age);
 	int GetAge();
 	void SetAge(int m);
         void ShowAge();
@@ -15,6 +15,10 @@ public:
 
 	friend void ShowName(Student & myStudent);
 	friend class SuperStudent;
+	Student operator+(Student b)
+	{
+	    return Student(age + b.age);
+	}
 private:
 	char name[32];
 	int age;
@@ -24,6 +28,10 @@ void ShowInfo()
 }
 };
 
+Student::Student(int in_age)
+{
+    age = in_age;
+}
 
 int Student::GetAge()
 {
@@ -50,33 +58,18 @@ void ShowName(Student & myStudent)
     cout<<"name:"<<myStudent.name<<endl;
 }
 
-class SuperStudent
-{
-private:
-    Student student;
-public:
-    void OutPutInfo();
-};
-
-void SuperStudent::OutPutInfo()
-{
-    student.SetAge(20);
-    student.ShowInfo();
-}
 
 
 int main()
 {
-	Student student;
+	Student a(200);
+        Student b(10);
 
-	student.SetAge(15);
-	student.SetName("zhangsan");
-        cout<<"hello: age:"<<student.GetAge()<<endl;
-	student.ShowAge();
-	ShowName(student);
+        Student c(0);
+	c = a + b;
+	cout<<"c-age:"<<endl;
+	c.ShowAge();
 
-	SuperStudent s_student;
-	s_student.OutPutInfo();
 
 	return 0;
 }
