@@ -20,7 +20,8 @@ int main(void)
 
         //Make a call
 	//bgapi originate
-	esl_send_recv(&handle, "bgapi originate user/1000 &park()\n\n");
+        //esl_send_recv(&handle, "bgapi originate user/1000 &park()\n\n");
+	esl_send_recv(&handle, "bgapi originate user/1000 5000\n\n");
 
 
 	esl_disconnect(&handle);
