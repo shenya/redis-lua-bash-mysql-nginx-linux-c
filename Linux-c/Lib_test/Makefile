@@ -9,7 +9,7 @@ libmy_math.so: my_math.o
 	gcc -shared -o libmy_math.so my_math.o
 
 my_math.o: my_math.c
-	gcc -fPIC -c my_math.c -g
+	gcc -fPIC -c my_math.c
 
 
 clean:
