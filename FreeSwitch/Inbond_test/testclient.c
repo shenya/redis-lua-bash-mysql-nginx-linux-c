@@ -3,6 +3,12 @@
 #include <esl.h>
 
 
+int test()
+{
+    printf("hello\n");
+    return 0;
+}
+
 int main(void)
 {
 	int status = 0;
@@ -37,13 +43,15 @@ int main(void)
 	   else if (ESL_SUCCESS == status)
 	   {
 	       const char *type = esl_event_get_header(handle.last_event, "content-type");
-	       printf("type:%s\n", type);
+	       const char *event_name = esl_event_get_header(handle.last_event, "Event-Name");
+	       printf("type:%s, event name:%s\n", type, event_name);
 	       if (handle.last_event && handle.last_event->body)
 	       {
-	           printf("body:%s\n", handle.last_event->body);
+	           //printf("body:%s\n", handle.last_event->body);
 
 		   const char *uuid = esl_event_get_header(handle.last_ievent, "Unique-ID");
-		   printf("uuid:%s\n", uuid);
+	           const char *event_name = esl_event_get_header(handle.last_ievent, "Event-Name");
+		   printf("uuid:%s, event name:%s\n", uuid, event_name);
 	       }
 
 	   }
