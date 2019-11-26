@@ -5,6 +5,7 @@
 
 int main(void)
 {
+	int status = 0;
 	esl_handle_t handle = {{0}};
 
 	esl_connect(&handle, "localhost", 8021, NULL, "ClueCon");
@@ -18,10 +19,32 @@ int main(void)
 		printf("%s\n", handle.last_sr_reply);
 	}
 
+        esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
+
         //Make a call
 	//bgapi originate
         //esl_send_recv(&handle, "bgapi originate user/1000 &park()\n\n");
 	esl_send_recv(&handle, "bgapi originate user/1000 5000\n\n");
+
+        while (1)
+	{
+	   status = esl_recv_event_timed(&handle, 10, 0, NULL);
+	   if (ESL_BREAK == status)
+	   {
+	       sleep(1);
+	   }
+	   else if (ESL_SUCCESS == status)
+	   {
+	       const char *type = esl_event_get_header(handle.last_event, "content-type");
+	       printf("type:%s\n", type);
+	   }
+	   else
+	   {
+	       printf("exit now");
+	       break;
+	   }
+	
+	}
 
 
 	esl_disconnect(&handle);
