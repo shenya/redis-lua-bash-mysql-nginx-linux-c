@@ -19,7 +19,8 @@ int main(void)
 		printf("%s\n", handle.last_sr_reply);
 	}
 
-        esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
+        //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
+        esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_ORIGINATE");
 
         //Make a call
 	//bgapi originate
@@ -37,6 +38,14 @@ int main(void)
 	   {
 	       const char *type = esl_event_get_header(handle.last_event, "content-type");
 	       printf("type:%s\n", type);
+	       if (handle.last_event && handle.last_event->body)
+	       {
+	           printf("body:%s\n", handle.last_event->body);
+
+		   const char *uuid = esl_event_get_header(handle.last_ievent, "Unique-ID");
+		   printf("uuid:%s\n", uuid);
+	       }
+
 	   }
 	   else
 	   {
