@@ -25,13 +25,15 @@ int main(void)
 		printf("%s\n", handle.last_sr_reply);
 	}
 
-        //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
-        esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_ORIGINATE CHANNEL_CREATE CHANNEL_DESTROY CHANNEL_STATE CHANNEL_CALLSTATE CHANNEL_ANSWER CHANNEL_HANGUP CHANNEL_EXECUTE");
+        esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
+        //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_ORIGINATE CHANNEL_CREATE CHANNEL_DESTROY CHANNEL_STATE CHANNEL_CALLSTATE CHANNEL_ANSWER CHANNEL_HANGUP CHANNEL_EXECUTE");
+        //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_CALLSTATE CHANNEL_STATE");
+        //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_STATE CHANNEL_PROGRESS CHANNEL_BRIDGE  CHANNEL_PROGRESS_MEDIA");
 
         //Make a call
 	//bgapi originate
         //esl_send_recv(&handle, "bgapi originate user/1000 &park()\n\n");
-	esl_send_recv(&handle, "bgapi originate user/1000 5000\n\n");
+	esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234}user/1000 5000\n\n");
 
         while (1)
 	{
@@ -47,10 +49,12 @@ int main(void)
 	       printf("type:%s, event name:%s\n", type, event_name);
 	       if (handle.last_event && handle.last_event->body)
 	       {
-	           //printf("body:%s\n", handle.last_event->body);
+	           printf("body:%s\n", handle.last_event->body);
 		   const char *uuid = esl_event_get_header(handle.last_ievent, "Unique-ID");
 	           const char *event_name = esl_event_get_header(handle.last_ievent, "Event-Name");
+	           const char *session_id = esl_event_get_header(handle.last_ievent, "call_uuid");
 		   printf("uuid:%s, event name:%s, ID:%d\n", uuid, event_name, handle.last_ievent->event_id);
+		   printf("session id:%s\n", session_id);
 	       }
 
 	   }
