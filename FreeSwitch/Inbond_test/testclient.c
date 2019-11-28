@@ -33,8 +33,9 @@ int main(void)
         //Make a call
 	//bgapi originate
         //esl_send_recv(&handle, "bgapi originate user/1000 &park()\n\n");
-	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1000 5000\n\n");
-	esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1001 5000\n\n");
+	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1000 &echo()\n\n");
+	esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1000 &playback(ivr/ivr-that_was_an_invalid_entry.wav)\n\n");
+	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1001 5000\n\n");
 
         while (1)
 	{
