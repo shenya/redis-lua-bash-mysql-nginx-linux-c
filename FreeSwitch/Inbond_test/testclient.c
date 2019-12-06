@@ -52,11 +52,18 @@ int main(void)
 	    printf("create event failed\n");
 	}
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068@39.105.106.62:9004;transport=tcp");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "dest_proto", "sip");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "blocking", "true");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "proto", "global");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "sip_profile", "external");
+#if 0
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "1001@172.17.244.156");
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "dest_proto", "sip");
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "blocking", "true");
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "proto", "global");
-	//esl_event_add_header(event, ESL_STACK_BOTTOM, "sip_profile", "external");
+#endif
 	esl_event_add_body(event, "hello world");
         status = esl_sendevent(&handle, event);
 	if (ESL_SUCCESS != status)
