@@ -9,6 +9,41 @@ int test()
     return 0;
 }
 
+int send_msg(esl_handle_t *handle)
+{
+        int status = ESL_SUCCESS;
+        esl_event_t *event = NULL;
+
+	status = esl_event_create_subclass(&event, ESL_EVENT_CUSTOM, "SMS::SEND_MESSAGE");
+	if (ESL_SUCCESS != status)
+	{
+	    printf("create event failed\n");
+	    return -1;
+	}
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068@39.105.106.62:9004;transport=tcp");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "dest_proto", "sip");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "blocking", "true");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "proto", "global");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "sip_profile", "external");
+#if 0
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "1001@172.17.244.156");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "dest_proto", "sip");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "blocking", "true");
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "proto", "global");
+#endif
+	esl_event_add_body(event, "hello world");
+        status = esl_sendevent(handle, event);
+	if (ESL_SUCCESS != status)
+	{
+	    printf("create event failed\n");
+	}
+
+
+	return 0;
+}
+
 int main(void)
 {
 	int status = 0;
@@ -43,34 +78,8 @@ int main(void)
 
 	//esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068_00014748@124.207.164.117:11786;transport=udp");
 	//esl_send_recv(&handle, "bgapi chat|1008|2068_00014748@124.202.182.82:60361;transport=TCP|hellow world\n\n");
-        status = ESL_SUCCESS;
-        esl_event_t *event = NULL;
 
-	status = esl_event_create_subclass(&event, ESL_EVENT_CUSTOM, "SMS::SEND_MESSAGE");
-	if (ESL_SUCCESS != status)
-	{
-	    printf("create event failed\n");
-	}
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068@39.105.106.62:9004;transport=tcp");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "dest_proto", "sip");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "blocking", "true");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "proto", "global");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "sip_profile", "external");
-#if 0
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "1001@172.17.244.156");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "dest_proto", "sip");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "blocking", "true");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "proto", "global");
-#endif
-	esl_event_add_body(event, "hello world");
-        status = esl_sendevent(&handle, event);
-	if (ESL_SUCCESS != status)
-	{
-	    printf("create event failed\n");
-	}
-
+	send_msg(&handle);
 	printf("***********\n");
 
 	
