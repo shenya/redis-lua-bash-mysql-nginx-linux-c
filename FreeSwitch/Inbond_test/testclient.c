@@ -9,7 +9,7 @@ int test()
     return 0;
 }
 
-int send_msg(esl_handle_t *handle)
+int send_msg(esl_handle_t *handle, char *to, int external_flag)
 {
         int status = ESL_SUCCESS;
         esl_event_t *event = NULL;
@@ -21,11 +21,16 @@ int send_msg(esl_handle_t *handle)
 	    return -1;
 	}
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068@39.105.106.62:9004;transport=tcp");
+	//esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068@39.105.106.62:9004;transport=tcp");
+	printf("to: %s\n", to);
+	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", to);
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "dest_proto", "sip");
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "blocking", "true");
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "proto", "global");
-	esl_event_add_header(event, ESL_STACK_BOTTOM, "sip_profile", "external");
+	if (external_flag)
+	{
+	    esl_event_add_header(event, ESL_STACK_BOTTOM, "sip_profile", "external");
+	}
 #if 0
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "from", "0000@172.17.244.156");
 	esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "1001@172.17.244.156");
@@ -79,8 +84,8 @@ int main(void)
 		printf("%s\n", handle.last_sr_reply);
 	}
 
-        //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
-        esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
+        esl_events(&handle, ESL_EVENT_TYPE_JSON, "CUSTOM sofia::register sofia::unregister sofia::expire");
+        //esl_events(&handle, ESL_EVENT_TYPE_JSON, "ALL");
         //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_ORIGINATE CHANNEL_CREATE CHANNEL_DESTROY CHANNEL_STATE CHANNEL_CALLSTATE CHANNEL_ANSWER CHANNEL_HANGUP CHANNEL_EXECUTE");
         //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_CALLSTATE CHANNEL_STATE");
         //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_STATE CHANNEL_PROGRESS CHANNEL_BRIDGE  CHANNEL_PROGRESS_MEDIA");
@@ -104,12 +109,38 @@ int main(void)
 	       printf("type:%s, event name:%s\n", type, event_name);
 	       if (handle.last_event && handle.last_event->body)
 	       {
-	           printf("body:%s\n", handle.last_event->body);
 		   const char *uuid = esl_event_get_header(handle.last_ievent, "Unique-ID");
 	           const char *event_name = esl_event_get_header(handle.last_ievent, "Event-Name");
 	           const char *session_id = esl_event_get_header(handle.last_ievent, "call_uuid");
+		   printf("----------------------------------------------------\n");
 		   printf("uuid:%s, event name:%s, ID:%d\n", uuid, event_name, handle.last_ievent->event_id);
 		   printf("session id:%s\n", session_id);
+		   printf("body start*****************\n");
+	           printf("body:%s\n", handle.last_event->body);
+
+		   if (ESL_EVENT_CUSTOM == handle.last_ievent->event_id)
+		   {
+		       printf("#####################\n");
+		       cJSON *root_obj = NULL;
+		       cJSON *tmp_obj = NULL;
+		       root_obj = cJSON_Parse(handle.last_event->body);
+                       tmp_obj = cJSON_GetObjectItem(root_obj, "Event-Subclass");
+		       if (tmp_obj)
+		       {
+		           printf("subcalss: %s\n", tmp_obj->valuestring);
+			   if (0 == strncmp(tmp_obj->valuestring, "sofia::register", strlen(tmp_obj->valuestring)))
+			   {
+			       cJSON *contact = NULL;
+			       contact = cJSON_GetObjectItem(root_obj, "contact");
+			       if (contact)
+			       {
+			           printf("contact: %s\n", contact->valuestring);
+				   send_msg(&handle, "1002@172.17.244.156", 0);
+			       }
+			   }
+		       }
+                       
+		   }
 	       }
 
 	   }
