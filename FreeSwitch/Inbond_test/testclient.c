@@ -44,6 +44,25 @@ int send_msg(esl_handle_t *handle)
 	return 0;
 }
 
+int call_originate()
+{
+
+        //Make a call
+	//bgapi originate
+        //esl_send_recv(&handle, "bgapi originate user/1000 &park()\n\n");
+	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1000 &echo()\n\n");
+	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1001 &playback(ivr/ivr-that_was_an_invalid_entry.wav)\n\n");
+	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1001 5000\n\n");
+	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1002 &bridge(user/1000)\n\n");
+	
+	//esl_send_recv(&handle, "bgapi originate {sip_invite_req_uri=sip:2068_00014748@124.202.182.82:58806;transport=TCP;ob,sip_invite_route_uri=sip:39.105.106.62:9003;transport=TCP;lr}sofia/external/2068_00014748@124.202.182.82:58806 5000\n\n");
+	//esl_send_recv(&handle, "bgapi originate {sip_invite_route_uri=<sip:39.105.106.62:9004;transport=TCP;lr>,sip_invite_from_user=hello,sip_invite_req_uri=sip:2068_00014748@124.202.182.82:60361;transport=TCP;ob,sip_invite_full_from=<sip:callcenter_auto_answer@47.93.228.87>,sip_h_E-cc-number=cc_pc_101_1077_00014748_1575512880_1881465682,sip_h_E-from-cp=cp,}sofia/internal/2068_00014748@124.202.182.82;transport=TCP 5000\n\n");
+
+	//esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068_00014748@124.207.164.117:11786;transport=udp");
+	//esl_send_recv(&handle, "bgapi chat|1008|2068_00014748@124.202.182.82:60361;transport=TCP|hellow world\n\n");
+	return 0;
+}
+
 int main(void)
 {
 	int status = 0;
@@ -60,26 +79,14 @@ int main(void)
 		printf("%s\n", handle.last_sr_reply);
 	}
 
+        //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
         esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "ALL");
         //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_ORIGINATE CHANNEL_CREATE CHANNEL_DESTROY CHANNEL_STATE CHANNEL_CALLSTATE CHANNEL_ANSWER CHANNEL_HANGUP CHANNEL_EXECUTE");
         //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_CALLSTATE CHANNEL_STATE");
         //esl_events(&handle, ESL_EVENT_TYPE_PLAIN, "CHANNEL_STATE CHANNEL_PROGRESS CHANNEL_BRIDGE  CHANNEL_PROGRESS_MEDIA");
 
-        //Make a call
-	//bgapi originate
-        //esl_send_recv(&handle, "bgapi originate user/1000 &park()\n\n");
-	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1000 &echo()\n\n");
-	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1001 &playback(ivr/ivr-that_was_an_invalid_entry.wav)\n\n");
-	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1001 5000\n\n");
-	//esl_send_recv(&handle, "bgapi originate {fax_ident=1231231234,sip_h_X-Product-ID=12345}user/1002 &bridge(user/1000)\n\n");
-	
-	//esl_send_recv(&handle, "bgapi originate {sip_invite_req_uri=sip:2068_00014748@124.202.182.82:58806;transport=TCP;ob,sip_invite_route_uri=sip:39.105.106.62:9003;transport=TCP;lr}sofia/external/2068_00014748@124.202.182.82:58806 5000\n\n");
-	//esl_send_recv(&handle, "bgapi originate {sip_invite_route_uri=<sip:39.105.106.62:9004;transport=TCP;lr>,sip_invite_from_user=hello,sip_invite_req_uri=sip:2068_00014748@124.202.182.82:60361;transport=TCP;ob,sip_invite_full_from=<sip:callcenter_auto_answer@47.93.228.87>,sip_h_E-cc-number=cc_pc_101_1077_00014748_1575512880_1881465682,sip_h_E-from-cp=cp,}sofia/internal/2068_00014748@124.202.182.82;transport=TCP 5000\n\n");
 
-	//esl_event_add_header(event, ESL_STACK_BOTTOM, "to", "2068_00014748@124.207.164.117:11786;transport=udp");
-	//esl_send_recv(&handle, "bgapi chat|1008|2068_00014748@124.202.182.82:60361;transport=TCP|hellow world\n\n");
-
-	send_msg(&handle);
+	//send_msg(&handle);
 	printf("***********\n");
 
 	
