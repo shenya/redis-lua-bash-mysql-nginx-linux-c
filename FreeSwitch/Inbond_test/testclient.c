@@ -131,11 +131,17 @@ int main(void)
 			   if (0 == strncmp(tmp_obj->valuestring, "sofia::register", strlen(tmp_obj->valuestring)))
 			   {
 			       cJSON *contact = NULL;
+			       cJSON *user_name = NULL;
+			       cJSON *domain = NULL;
+			       char to_buf[64] = {0};
 			       contact = cJSON_GetObjectItem(root_obj, "contact");
 			       if (contact)
 			       {
 			           printf("contact: %s\n", contact->valuestring);
-				   send_msg(&handle, "1002@172.17.244.156", 0);
+			           user_name = cJSON_GetObjectItem(root_obj, "user_name");
+			           domain = cJSON_GetObjectItem(root_obj, "domain_name");
+				   snprintf(to_buf, sizeof(to_buf), "%s@%s", user_name->valuestring, domain->valuestring);
+				   send_msg(&handle, to_buf, 0);
 			       }
 			   }
 		       }
